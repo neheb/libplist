@@ -132,7 +132,7 @@ Dictionary::iterator Dictionary::Set(const std::string& key, const Node* node)
         _map[key] = clone;
         return _map.find(key);
     }
-    return iterator(this->_map.end());
+    return {this->_map.end()};
 }
 
 Dictionary::iterator Dictionary::Set(const std::string& key, const Node& node)
