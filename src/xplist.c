@@ -117,7 +117,8 @@ static size_t dtostr(char *buf, size_t bufsize, double realval)
             if (buf[i] == ',') {
                 buf[i] = '.';
                 break;
-            } else if (buf[i] == '.') {
+            }
+            if (buf[i] == '.') {
                 break;
             }
         }
@@ -760,7 +761,8 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
         PLIST_XML_ERR("EOF while parsing closing tag\n");
         ctx->err++;
         return NULL;
-    } else if (*ctx->pos != '>') {
+    }
+    if (*ctx->pos != '>') {
         PLIST_XML_ERR("Invalid closing tag; expected '>', found '%c'\n", *ctx->pos);
         ctx->err++;
         return NULL;
@@ -863,10 +865,9 @@ static int unescape_entities(char *str, size_t *length)
                 i -= entlen+1 - bytelen;
                 len -= entlen+2 - bytelen;
                 continue;
-            } else {
-                PLIST_XML_ERR("Invalid empty entity sequence &;\n");
-                return -1;
             }
+            PLIST_XML_ERR("Invalid empty entity sequence &;\n");
+            return -1;
         }
         i++;
     }
@@ -972,7 +973,8 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
             }
             ctx->pos += 2;
             continue;
-        } else if (*(ctx->pos) == '!') {
+        }
+        if (*(ctx->pos) == '!') {
             /* comment or DTD */
             if (((ctx->end - ctx->pos) > 3) && !strncmp(ctx->pos, "!--", 3)) {
                 ctx->pos += 3;
@@ -996,13 +998,13 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                     if (*ctx->pos == '[') {
                         embedded_dtd = 1;
                         break;
-                    } else if (*ctx->pos == '>') {
+                    }
+                    if (*ctx->pos == '>') {
                         /* end of DOCTYPE found already */
                         ctx->pos++;
                         break;
-                    } else {
-                        parse_skip_ws(ctx);
                     }
+                    parse_skip_ws(ctx);
                 }
                 if (embedded_dtd) {
                     find_str(ctx, "]>", 2, 1);
@@ -1021,382 +1023,381 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                 goto err_out;
             }
             continue;
-        } else {
-            int is_empty = 0;
-            int closing_tag = 0;
-            p = ctx->pos;
-            find_next(ctx," \r\n\t<>", 6, 0);
-            if (ctx->pos >= ctx->end) {
-                PLIST_XML_ERR("Unexpected EOF while parsing XML\n");
-                ctx->err++;
-                goto err_out;
-            }
-            int taglen = ctx->pos - p;
-            tag = malloc(taglen + 1);
-            strncpy(tag, p, taglen);
-            tag[taglen] = '\0';
-            if (*ctx->pos != '>') {
-                find_next(ctx, "<>", 2, 1);
-            }
-            if (ctx->pos >= ctx->end) {
-                PLIST_XML_ERR("Unexpected EOF while parsing XML\n");
-                ctx->err++;
-                goto err_out;
-            }
-            if (*ctx->pos != '>') {
-                PLIST_XML_ERR("Missing '>' for tag <%s\n", tag);
-                ctx->err++;
-                goto err_out;
-            }
-            if (*(ctx->pos-1) == '/') {
-                int idx = ctx->pos - p - 1;
-                if (idx < taglen)
-                    tag[idx] = '\0';
-                is_empty = 1;
-            }
-            ctx->pos++;
-            if (!strcmp(tag, "plist")) {
-                free(tag);
-                tag = NULL;
-                has_content = 0;
+        }
+        int is_empty = 0;
+        int closing_tag = 0;
+        p = ctx->pos;
+        find_next(ctx, " \r\n\t<>", 6, 0);
+        if (ctx->pos >= ctx->end) {
+            PLIST_XML_ERR("Unexpected EOF while parsing XML\n");
+            ctx->err++;
+            goto err_out;
+        }
+        int taglen = ctx->pos - p;
+        tag = malloc(taglen + 1);
+        strncpy(tag, p, taglen);
+        tag[taglen] = '\0';
+        if (*ctx->pos != '>') {
+            find_next(ctx, "<>", 2, 1);
+        }
+        if (ctx->pos >= ctx->end) {
+            PLIST_XML_ERR("Unexpected EOF while parsing XML\n");
+            ctx->err++;
+            goto err_out;
+        }
+        if (*ctx->pos != '>') {
+            PLIST_XML_ERR("Missing '>' for tag <%s\n", tag);
+            ctx->err++;
+            goto err_out;
+        }
+        if (*(ctx->pos - 1) == '/') {
+            int idx = ctx->pos - p - 1;
+            if (idx < taglen)
+                tag[idx] = '\0';
+            is_empty = 1;
+        }
+        ctx->pos++;
+        if (!strcmp(tag, "plist")) {
+            free(tag);
+            tag = NULL;
+            has_content = 0;
 
-                if (!node_path && *plist) {
-                    /* we don't allow another top-level <plist> */
-                    break;
-                }
-                if (is_empty) {
-                    PLIST_XML_ERR("Empty plist tag\n");
+            if (!node_path && *plist) {
+                /* we don't allow another top-level <plist> */
+                break;
+            }
+            if (is_empty) {
+                PLIST_XML_ERR("Empty plist tag\n");
+                ctx->err++;
+                goto err_out;
+            }
+
+            struct node_path_item *path_item = malloc(sizeof(struct node_path_item));
+            if (!path_item) {
+                PLIST_XML_ERR("out of memory when allocating node path item\n");
+                ctx->err++;
+                goto err_out;
+            }
+            path_item->type = "plist";
+            path_item->prev = node_path;
+            node_path = path_item;
+
+            continue;
+        }
+        if (!strcmp(tag, "/plist")) {
+            if (!has_content) {
+                PLIST_XML_ERR("encountered empty plist tag\n");
+                ctx->err++;
+                goto err_out;
+            }
+            if (!node_path) {
+                PLIST_XML_ERR("node path is empty while trying to match closing tag with opening tag\n");
+                ctx->err++;
+                goto err_out;
+            }
+            if (strcmp(node_path->type, tag + 1) != 0) {
+                PLIST_XML_ERR("mismatching closing tag <%s> found for opening tag <%s>\n", tag, node_path->type);
+                ctx->err++;
+                goto err_out;
+            }
+            struct node_path_item *path_item = node_path;
+            node_path = node_path->prev;
+            free(path_item);
+
+            free(tag);
+            tag = NULL;
+
+            continue;
+        }
+
+        plist_data_t data = plist_new_plist_data();
+        subnode = plist_new_node(data);
+        has_content = 1;
+
+        if (!strcmp(tag, XPLIST_DICT)) {
+            data->type = PLIST_DICT;
+        } else if (!strcmp(tag, XPLIST_ARRAY)) {
+            data->type = PLIST_ARRAY;
+        } else if (!strcmp(tag, XPLIST_INT)) {
+            if (!is_empty) {
+                text_part_t first_part = { NULL, 0, 0, NULL };
+                text_part_t *tp = get_text_parts(ctx, tag, taglen, 1, &first_part);
+                if (!tp) {
+                    PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
+                    text_parts_free(first_part.next);
                     ctx->err++;
                     goto err_out;
                 }
+                if (tp->begin) {
+                    int requires_free = 0;
+                    char *str_content = text_parts_get_content(tp, 0, NULL, &requires_free);
+                    if (!str_content) {
+                        PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
+                        text_parts_free(first_part.next);
+                        ctx->err++;
+                        goto err_out;
+                    }
+                    char *str = str_content;
+                    int is_negative = 0;
+                    if ((str[0] == '-') || (str[0] == '+')) {
+                        if (str[0] == '-') {
+                            is_negative = 1;
+                        }
+                        str++;
+                    }
+                    data->intval = strtoull((char *)str, NULL, 0);
+                    if (is_negative || (data->intval <= INT64_MAX)) {
+                        uint64_t v = data->intval;
+                        if (is_negative) {
+                            v = -v;
+                        }
+                        data->intval = v;
+                        data->length = 8;
+                    } else {
+                        data->length = 16;
+                    }
+                    if (requires_free) {
+                        free(str_content);
+                    }
+                } else {
+                    is_empty = 1;
+                }
+                text_parts_free(tp->next);
+            }
+            if (is_empty) {
+                data->intval = 0;
+                data->length = 8;
+            }
+            data->type = PLIST_UINT;
+        } else if (!strcmp(tag, XPLIST_REAL)) {
+            if (!is_empty) {
+                text_part_t first_part = { NULL, 0, 0, NULL };
+                text_part_t *tp = get_text_parts(ctx, tag, taglen, 1, &first_part);
+                if (!tp) {
+                    PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
+                    text_parts_free(first_part.next);
+                    ctx->err++;
+                    goto err_out;
+                }
+                if (tp->begin) {
+                    int requires_free = 0;
+                    char *str_content = text_parts_get_content(tp, 0, NULL, &requires_free);
+                    if (!str_content) {
+                        PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
+                        text_parts_free(first_part.next);
+                        ctx->err++;
+                        goto err_out;
+                    }
+                    data->realval = atof(str_content);
+                    if (requires_free) {
+                        free(str_content);
+                    }
+                }
+                text_parts_free(tp->next);
+            }
+            data->type = PLIST_REAL;
+            data->length = 8;
+        } else if (!strcmp(tag, XPLIST_TRUE)) {
+            if (!is_empty) {
+                get_text_parts(ctx, tag, taglen, 1, NULL);
+            }
+            data->type = PLIST_BOOLEAN;
+            data->boolval = 1;
+            data->length = 1;
+        } else if (!strcmp(tag, XPLIST_FALSE)) {
+            if (!is_empty) {
+                get_text_parts(ctx, tag, taglen, 1, NULL);
+            }
+            data->type = PLIST_BOOLEAN;
+            data->boolval = 0;
+            data->length = 1;
+        } else if (!strcmp(tag, XPLIST_STRING) || !strcmp(tag, XPLIST_KEY)) {
+            if (!is_empty) {
+                text_part_t first_part = { NULL, 0, 0, NULL };
+                text_part_t *tp = get_text_parts(ctx, tag, taglen, 0, &first_part);
+                char *str = NULL;
+                size_t length = 0;
+                if (!tp) {
+                    PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
+                    text_parts_free(first_part.next);
+                    ctx->err++;
+                    goto err_out;
+                }
+                str = text_parts_get_content(tp, 1, &length, NULL);
+                text_parts_free(first_part.next);
+                if (!str) {
+                    PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
+                    ctx->err++;
+                    goto err_out;
+                }
+                if (!strcmp(tag, "key") && !keyname && parent && (plist_get_node_type(parent) == PLIST_DICT)) {
+                    keyname = str;
+                    free(tag);
+                    tag = NULL;
+                    plist_free(subnode);
+                    subnode = NULL;
+                    continue;
+                }
+                data->strval = str;
+                data->length = length;
+            } else {
+                data->strval = strdup("");
+                data->length = 0;
+            }
+            data->type = PLIST_STRING;
+        } else if (!strcmp(tag, XPLIST_DATA)) {
+            if (!is_empty) {
+                text_part_t first_part = { NULL, 0, 0, NULL };
+                text_part_t *tp = get_text_parts(ctx, tag, taglen, 1, &first_part);
+                if (!tp) {
+                    PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
+                    text_parts_free(first_part.next);
+                    ctx->err++;
+                    goto err_out;
+                }
+                if (tp->begin) {
+                    int requires_free = 0;
+                    char *str_content = text_parts_get_content(tp, 0, NULL, &requires_free);
+                    if (!str_content) {
+                        PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
+                        text_parts_free(first_part.next);
+                        ctx->err++;
+                        goto err_out;
+                    }
+                    size_t size = tp->length;
+                    if (size > 0) {
+                        data->buff = base64decode(str_content, &size);
+                        data->length = size;
+                    }
 
+                    if (requires_free) {
+                        free(str_content);
+                    }
+                }
+                text_parts_free(tp->next);
+            }
+            data->type = PLIST_DATA;
+        } else if (!strcmp(tag, XPLIST_DATE)) {
+            if (!is_empty) {
+                text_part_t first_part = { NULL, 0, 0, NULL };
+                text_part_t *tp = get_text_parts(ctx, tag, taglen, 1, &first_part);
+                if (!tp) {
+                    PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
+                    text_parts_free(first_part.next);
+                    ctx->err++;
+                    goto err_out;
+                }
+                Time64_T timev = 0;
+                if (tp->begin) {
+                    int requires_free = 0;
+                    size_t length = 0;
+                    char *str_content = text_parts_get_content(tp, 0, &length, &requires_free);
+                    if (!str_content) {
+                        PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
+                        text_parts_free(first_part.next);
+                        ctx->err++;
+                        goto err_out;
+                    }
+
+                    if ((length >= 11) && (length < 32)) {
+                        /* we need to copy here and 0-terminate because sscanf will read the entire string (whole rest of XML data) which can be huge */
+                        char strval[32];
+                        struct TM btime;
+                        strncpy(strval, str_content, length);
+                        strval[tp->length] = '\0';
+                        parse_date(strval, &btime);
+                        timev = timegm64(&btime);
+                    } else {
+                        PLIST_XML_ERR("Invalid text content in date node\n");
+                    }
+                    if (requires_free) {
+                        free(str_content);
+                    }
+                }
+                text_parts_free(tp->next);
+                data->realval = (double)(timev - MAC_EPOCH);
+            }
+            data->length = sizeof(double);
+            data->type = PLIST_DATE;
+        } else if (tag[0] == '/') {
+            closing_tag = 1;
+        } else {
+            PLIST_XML_ERR("Unexpected tag <%s%s> encountered\n", tag, (is_empty) ? "/" : "");
+            ctx->pos = ctx->end;
+            ctx->err++;
+            goto err_out;
+        }
+        if (subnode && !closing_tag) {
+            if (!*plist) {
+                /* first node, make this node the parent node */
+                *plist = subnode;
+                if (data->type != PLIST_DICT && data->type != PLIST_ARRAY) {
+                    /* if the first node is not a structered node, we're done */
+                    subnode = NULL;
+                    goto err_out;
+                }
+                parent = subnode;
+            } else if (parent) {
+                switch (plist_get_node_type(parent)) {
+                case PLIST_DICT:
+                    if (!keyname) {
+                        PLIST_XML_ERR("missing key name while adding dict item\n");
+                        ctx->err++;
+                        goto err_out;
+                    }
+                    plist_dict_set_item(parent, keyname, subnode);
+                    break;
+                case PLIST_ARRAY:
+                    plist_array_append_item(parent, subnode);
+                    break;
+                default:
+                    /* should not happen */
+                    PLIST_XML_ERR("parent is not a structured node\n");
+                    ctx->err++;
+                    goto err_out;
+                }
+            }
+            if (!is_empty && (data->type == PLIST_DICT || data->type == PLIST_ARRAY)) {
                 struct node_path_item *path_item = malloc(sizeof(struct node_path_item));
                 if (!path_item) {
                     PLIST_XML_ERR("out of memory when allocating node path item\n");
                     ctx->err++;
                     goto err_out;
                 }
-                path_item->type = "plist";
+                path_item->type = (data->type == PLIST_DICT) ? XPLIST_DICT : XPLIST_ARRAY;
                 path_item->prev = node_path;
                 node_path = path_item;
 
-                continue;
-            } else if (!strcmp(tag, "/plist")) {
-                if (!has_content) {
-                    PLIST_XML_ERR("encountered empty plist tag\n");
-                    ctx->err++;
-                    goto err_out;
-                }
-                if (!node_path) {
-                    PLIST_XML_ERR("node path is empty while trying to match closing tag with opening tag\n");
-                    ctx->err++;
-                    goto err_out;
-                }
-                if (strcmp(node_path->type, tag+1) != 0) {
-                    PLIST_XML_ERR("mismatching closing tag <%s> found for opening tag <%s>\n", tag, node_path->type);
-                    ctx->err++;
-                    goto err_out;
-                }
-                struct node_path_item *path_item = node_path;
-                node_path = node_path->prev;
-                free(path_item);
-
-                free(tag);
-                tag = NULL;
-
-                continue;
+                parent = subnode;
             }
-
-            plist_data_t data = plist_new_plist_data();
-            subnode = plist_new_node(data);
-            has_content = 1;
-
-            if (!strcmp(tag, XPLIST_DICT)) {
-                data->type = PLIST_DICT;
-            } else if (!strcmp(tag, XPLIST_ARRAY)) {
-                data->type = PLIST_ARRAY;
-            } else if (!strcmp(tag, XPLIST_INT)) {
-                if (!is_empty) {
-                    text_part_t first_part = { NULL, 0, 0, NULL };
-                    text_part_t *tp = get_text_parts(ctx, tag, taglen, 1, &first_part);
-                    if (!tp) {
-                        PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
-                        text_parts_free(first_part.next);
-                        ctx->err++;
-                        goto err_out;
-                    }
-                    if (tp->begin) {
-                        int requires_free = 0;
-                        char *str_content = text_parts_get_content(tp, 0, NULL, &requires_free);
-                        if (!str_content) {
-                            PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
-                            text_parts_free(first_part.next);
-                            ctx->err++;
-                            goto err_out;
-                        }
-                        char *str = str_content;
-                        int is_negative = 0;
-                        if ((str[0] == '-') || (str[0] == '+')) {
-                            if (str[0] == '-') {
-                                is_negative = 1;
-                            }
-                            str++;
-                        }
-                        data->intval = strtoull((char*)str, NULL, 0);
-                        if (is_negative || (data->intval <= INT64_MAX)) {
-                            uint64_t v = data->intval;
-                            if (is_negative) {
-                                v = -v;
-                            }
-                            data->intval = v;
-                            data->length = 8;
-                        } else {
-                            data->length = 16;
-                        }
-                        if (requires_free) {
-                            free(str_content);
-                        }
-                    } else {
-                        is_empty = 1;
-                    }
-                    text_parts_free(tp->next);
-                }
-                if (is_empty) {
-                    data->intval = 0;
-                    data->length = 8;
-                }
-                data->type = PLIST_UINT;
-            } else if (!strcmp(tag, XPLIST_REAL)) {
-                if (!is_empty) {
-                    text_part_t first_part = { NULL, 0, 0, NULL };
-                    text_part_t *tp = get_text_parts(ctx, tag, taglen, 1, &first_part);
-                    if (!tp) {
-                        PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
-                        text_parts_free(first_part.next);
-                        ctx->err++;
-                        goto err_out;
-                    }
-                    if (tp->begin) {
-                        int requires_free = 0;
-                        char *str_content = text_parts_get_content(tp, 0, NULL, &requires_free);
-                        if (!str_content) {
-                            PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
-                            text_parts_free(first_part.next);
-                            ctx->err++;
-                            goto err_out;
-                        }
-                        data->realval = atof(str_content);
-                        if (requires_free) {
-                            free(str_content);
-                        }
-                    }
-                    text_parts_free(tp->next);
-                }
-                data->type = PLIST_REAL;
-                data->length = 8;
-            } else if (!strcmp(tag, XPLIST_TRUE)) {
-                if (!is_empty) {
-                    get_text_parts(ctx, tag, taglen, 1, NULL);
-                }
-                data->type = PLIST_BOOLEAN;
-                data->boolval = 1;
-                data->length = 1;
-            } else if (!strcmp(tag, XPLIST_FALSE)) {
-                if (!is_empty) {
-                    get_text_parts(ctx, tag, taglen, 1, NULL);
-                }
-                data->type = PLIST_BOOLEAN;
-                data->boolval = 0;
-                data->length = 1;
-            } else if (!strcmp(tag, XPLIST_STRING) || !strcmp(tag, XPLIST_KEY)) {
-                if (!is_empty) {
-                    text_part_t first_part = { NULL, 0, 0, NULL };
-                    text_part_t *tp = get_text_parts(ctx, tag, taglen, 0, &first_part);
-                    char *str = NULL;
-                    size_t length = 0;
-                    if (!tp) {
-                        PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
-                        text_parts_free(first_part.next);
-                        ctx->err++;
-                        goto err_out;
-                    }
-                    str = text_parts_get_content(tp, 1, &length, NULL);
-                    text_parts_free(first_part.next);
-                    if (!str) {
-                        PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
-                        ctx->err++;
-                        goto err_out;
-                    }
-                    if (!strcmp(tag, "key") && !keyname && parent && (plist_get_node_type(parent) == PLIST_DICT)) {
-                        keyname = str;
-                        free(tag);
-                        tag = NULL;
-                        plist_free(subnode);
-                        subnode = NULL;
-                        continue;
-                    } else {
-                        data->strval = str;
-                        data->length = length;
-                    }
-                } else {
-                    data->strval = strdup("");
-                    data->length = 0;
-                }
-                data->type = PLIST_STRING;
-            } else if (!strcmp(tag, XPLIST_DATA)) {
-                if (!is_empty) {
-                    text_part_t first_part = { NULL, 0, 0, NULL };
-                    text_part_t *tp = get_text_parts(ctx, tag, taglen, 1, &first_part);
-                    if (!tp) {
-                        PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
-                        text_parts_free(first_part.next);
-                        ctx->err++;
-                        goto err_out;
-                    }
-                    if (tp->begin) {
-                        int requires_free = 0;
-                        char *str_content = text_parts_get_content(tp, 0, NULL, &requires_free);
-                        if (!str_content) {
-                            PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
-                            text_parts_free(first_part.next);
-                            ctx->err++;
-                            goto err_out;
-                        }
-                        size_t size = tp->length;
-                        if (size > 0) {
-                            data->buff = base64decode(str_content, &size);
-                            data->length = size;
-                        }
-
-                        if (requires_free) {
-                            free(str_content);
-                        }
-                    }
-                    text_parts_free(tp->next);
-                }
-                data->type = PLIST_DATA;
-            } else if (!strcmp(tag, XPLIST_DATE)) {
-                if (!is_empty) {
-                    text_part_t first_part = { NULL, 0, 0, NULL };
-                    text_part_t *tp = get_text_parts(ctx, tag, taglen, 1, &first_part);
-                    if (!tp) {
-                        PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
-                        text_parts_free(first_part.next);
-                        ctx->err++;
-                        goto err_out;
-                    }
-                    Time64_T timev = 0;
-                    if (tp->begin) {
-                        int requires_free = 0;
-                        size_t length = 0;
-                        char *str_content = text_parts_get_content(tp, 0, &length, &requires_free);
-                        if (!str_content) {
-                            PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
-                            text_parts_free(first_part.next);
-                            ctx->err++;
-                            goto err_out;
-                        }
-
-                        if ((length >= 11) && (length < 32)) {
-                            /* we need to copy here and 0-terminate because sscanf will read the entire string (whole rest of XML data) which can be huge */
-                            char strval[32];
-                            struct TM btime;
-                            strncpy(strval, str_content, length);
-                            strval[tp->length] = '\0';
-                            parse_date(strval, &btime);
-                            timev = timegm64(&btime);
-                        } else {
-                            PLIST_XML_ERR("Invalid text content in date node\n");
-                        }
-                        if (requires_free) {
-                            free(str_content);
-                        }
-                    }
-                    text_parts_free(tp->next);
-                    data->realval = (double)(timev - MAC_EPOCH);
-                }
-                data->length = sizeof(double);
-                data->type = PLIST_DATE;
-            } else if (tag[0] == '/') {
-                 closing_tag = 1;
-            } else {
-                PLIST_XML_ERR("Unexpected tag <%s%s> encountered\n", tag, (is_empty) ? "/" : "");
-                ctx->pos = ctx->end;
+            subnode = NULL;
+        } else if (closing_tag) {
+            if (!node_path) {
+                PLIST_XML_ERR("node path is empty while trying to match closing tag with opening tag\n");
                 ctx->err++;
                 goto err_out;
             }
-            if (subnode && !closing_tag) {
-                if (!*plist) {
-                    /* first node, make this node the parent node */
-                    *plist = subnode;
-                    if (data->type != PLIST_DICT && data->type != PLIST_ARRAY) {
-                        /* if the first node is not a structered node, we're done */
-                        subnode = NULL;
-                        goto err_out;
-                    }
-                    parent = subnode;
-                } else if (parent) {
-                    switch (plist_get_node_type(parent)) {
-                    case PLIST_DICT:
-                        if (!keyname) {
-                            PLIST_XML_ERR("missing key name while adding dict item\n");
-                            ctx->err++;
-                            goto err_out;
-                        }
-                        plist_dict_set_item(parent, keyname, subnode);
-                        break;
-                    case PLIST_ARRAY:
-                        plist_array_append_item(parent, subnode);
-                        break;
-                    default:
-                        /* should not happen */
-                        PLIST_XML_ERR("parent is not a structured node\n");
-                        ctx->err++;
-                        goto err_out;
-                    }
-                }
-                if (!is_empty && (data->type == PLIST_DICT || data->type == PLIST_ARRAY)) {
-                    struct node_path_item *path_item = malloc(sizeof(struct node_path_item));
-                    if (!path_item) {
-                        PLIST_XML_ERR("out of memory when allocating node path item\n");
-                        ctx->err++;
-                        goto err_out;
-                    }
-                    path_item->type = (data->type == PLIST_DICT) ? XPLIST_DICT : XPLIST_ARRAY;
-                    path_item->prev = node_path;
-                    node_path = path_item;
-
-                    parent = subnode;
-                }
-                subnode = NULL;
-            } else if (closing_tag) {
-                if (!node_path) {
-                    PLIST_XML_ERR("node path is empty while trying to match closing tag with opening tag\n");
-                    ctx->err++;
-                    goto err_out;
-                }
-                if (strcmp(node_path->type, tag+1) != 0) {
-                    PLIST_XML_ERR("unexpected %s found (for opening %s)\n", tag, node_path->type);
-                    ctx->err++;
-                    goto err_out;
-                }
-                struct node_path_item *path_item = node_path;
-                node_path = node_path->prev;
-                free(path_item);
-
-                parent = ((node_t*)parent)->parent;
-                if (!parent) {
-                    goto err_out;
-                }
+            if (strcmp(node_path->type, tag + 1) != 0) {
+                PLIST_XML_ERR("unexpected %s found (for opening %s)\n", tag, node_path->type);
+                ctx->err++;
+                goto err_out;
             }
+            struct node_path_item *path_item = node_path;
+            node_path = node_path->prev;
+            free(path_item);
 
-            free(tag);
-            tag = NULL;
-            free(keyname);
-            keyname = NULL;
-            plist_free(subnode);
-            subnode = NULL;
+            parent = ((node_t *)parent)->parent;
+            if (!parent) {
+                goto err_out;
+            }
         }
+
+        free(tag);
+        tag = NULL;
+        free(keyname);
+        keyname = NULL;
+        plist_free(subnode);
+        subnode = NULL;
     }
 
     if (node_path) {

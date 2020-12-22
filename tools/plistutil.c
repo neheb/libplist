@@ -86,8 +86,7 @@ static options_t *parse_arguments(int argc, char *argv[])
             i++;
             continue;
         }
-        else if (!strcmp(argv[i], "--outfile") || !strcmp(argv[i], "-o"))
-        {
+        if (!strcmp(argv[i], "--outfile") || !strcmp(argv[i], "-o")) {
             if ((i + 1) == argc)
             {
                 free(options);
@@ -97,8 +96,7 @@ static options_t *parse_arguments(int argc, char *argv[])
             i++;
             continue;
         }
-        else if (!strcmp(argv[i], "--format") || !strcmp(argv[i], "-f"))
-        {
+        if (!strcmp(argv[i], "--format") || !strcmp(argv[i], "-f")) {
             if ((i + 1) == argc)
             {
                 free(options);
@@ -116,26 +114,20 @@ static options_t *parse_arguments(int argc, char *argv[])
             i++;
             continue;
         }
-        else if (!strcmp(argv[i], "--debug") || !strcmp(argv[i], "-d"))
-        {
+        if (!strcmp(argv[i], "--debug") || !strcmp(argv[i], "-d")) {
             options->debug = 1;
         }
-        else if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h"))
-        {
+        if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
             free(options);
             return NULL;
         }
-        else if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v"))
-        {
+        if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v")) {
             printf("plistutil %s\n", PACKAGE_VERSION);
             exit(EXIT_SUCCESS);
         }
-        else
-        {
-            printf("ERROR: Invalid option '%s'\n", argv[i]);
-            free(options);
-            return NULL;
-        }
+        printf("ERROR: Invalid option '%s'\n", argv[i]);
+        free(options);
+        return NULL;
     }
 
     return options;
