@@ -1,0 +1,9 @@
+option('plistpp', type : 'boolean',
+  value : true,
+  description : 'Build libplist C++ bindings',
+)
+
+option('cython', type : 'boolean',
+  value : true,
+  description : 'Build Python bindings using Cython',
+)

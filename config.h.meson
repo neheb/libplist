@@ -1,0 +1,112 @@
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define if building universal (internal helper macro) */
+#mesondefine AC_APPLE_UNIVERSAL_BUILD
+
+/* Define if debug message output code should be built. */
+#mesondefine DEBUG
+
+/* Define to 1 if you have the `asprintf' function. */
+#mesondefine HAVE_ASPRINTF
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#mesondefine HAVE_DLFCN_H
+
+/* Define if compiled with -fvisibility=hidden */
+#mesondefine HAVE_FVISIBILITY
+
+/* Define to 1 if you have the `gmtime_r' function. */
+#mesondefine HAVE_GMTIME_R
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#mesondefine HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `localtime_r' function. */
+#mesondefine HAVE_LOCALTIME_R
+
+/* Define to 1 if you have the `memmem' function. */
+#mesondefine HAVE_MEMMEM
+
+/* Define to 1 if you have the <memory.h> header file. */
+#mesondefine HAVE_MEMORY_H
+
+/* If available, contains the Python version number currently in use. */
+#mesondefine HAVE_PYTHON
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#mesondefine HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#mesondefine HAVE_STDLIB_H
+
+/* Define to 1 if you have the `stpcpy' function. */
+#mesondefine HAVE_STPCPY
+
+/* Define to 1 if you have the `strcasecmp' function. */
+#mesondefine HAVE_STRCASECMP
+
+/* Define to 1 if you have the `strdup' function. */
+#mesondefine HAVE_STRDUP
+
+/* Define to 1 if you have the `strerror' function. */
+#mesondefine HAVE_STRERROR
+
+/* Define to 1 if you have the <strings.h> header file. */
+#mesondefine HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#mesondefine HAVE_STRING_H
+
+/* Define to 1 if you have the `strndup' function. */
+#mesondefine HAVE_STRNDUP
+
+/* Define to 1 if you have the `strptime' function. */
+#mesondefine HAVE_STRPTIME
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#mesondefine HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#mesondefine HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the `timegm' function. */
+#mesondefine HAVE_TIMEGM
+
+/* Define if struct tm has a tm_gmtoff member */
+#mesondefine HAVE_TM_TM_GMTOFF
+
+/* Define if struct tm has a tm_zone member */
+#mesondefine HAVE_TM_TM_ZONE
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#mesondefine HAVE_UNISTD_H
+
+/* Define to 1 if you have the `vasprintf' function. */
+#mesondefine HAVE_VASPRINTF
+
+/* Define to the address where bug reports for this package should be sent. */
+#mesondefine PACKAGE_BUGREPORT
+
+/* Define to the home page for this package. */
+#mesondefine PACKAGE_URL
+
+/* Define to the version of this package. */
+#mesondefine PACKAGE_VERSION
+
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+#if defined AC_APPLE_UNIVERSAL_BUILD
+# if defined __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN 1
+# endif
+#else
+# ifndef WORDS_BIGENDIAN
+#  undef WORDS_BIGENDIAN
+# endif
+#endif
+
+/* big endian */
+#mesondefine __BIG_ENDIAN__
+
+/* little endian */
+#mesondefine __LITTLE_ENDIAN__
