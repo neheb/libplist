@@ -37,7 +37,7 @@ public :
     Date(const Date& d);
     Date& operator=(const Date& d);
     Date(timeval t);
-    virtual ~Date();
+    virtual ~Date() = default;
 
     Node* Clone() const;
 

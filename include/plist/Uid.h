@@ -35,7 +35,7 @@ public :
     Uid(const Uid& i);
     Uid& operator=(const Uid& i);
     Uid(uint64_t i);
-    virtual ~Uid();
+    virtual ~Uid() = default;
 
     Node* Clone() const;
 

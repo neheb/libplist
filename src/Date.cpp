@@ -50,10 +50,6 @@ Date::Date(timeval t) : Node(PLIST_DATE)
     plist_set_date_val(_node, t.tv_sec, t.tv_usec);
 }
 
-Date::~Date()
-{
-}
-
 Node* Date::Clone() const
 {
     return new Date(*this);

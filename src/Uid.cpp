@@ -49,10 +49,6 @@ Uid::Uid(uint64_t i) : Node(PLIST_UID)
     plist_set_uid_val(_node, i);
 }
 
-Uid::~Uid()
-{
-}
-
 Node* Uid::Clone() const
 {
     return new Uid(*this);

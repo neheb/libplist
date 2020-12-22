@@ -31,10 +31,6 @@ Structure::Structure(plist_type type, Node* parent) : Node(type, parent)
 {
 }
 
-Structure::~Structure()
-{
-}
-
 uint32_t Structure::GetSize() const
 {
     uint32_t size = 0;

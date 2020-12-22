@@ -49,10 +49,6 @@ Key::Key(const std::string& s) : Node(PLIST_STRING)
     plist_set_key_val(_node, s.c_str());
 }
 
-Key::~Key()
-{
-}
-
 Node* Key::Clone() const
 {
     return new Key(*this);

@@ -49,10 +49,6 @@ Integer::Integer(uint64_t i) : Node(PLIST_UINT)
     plist_set_uint_val(_node, i);
 }
 
-Integer::~Integer()
-{
-}
-
 Node* Integer::Clone() const
 {
     return new Integer(*this);
