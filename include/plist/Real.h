@@ -35,7 +35,7 @@ public :
     Real(const Real& d);
     Real& operator=(const Real& d);
     Real(double d);
-    virtual ~Real();
+    virtual ~Real() = default;
 
     Node* Clone() const;
 

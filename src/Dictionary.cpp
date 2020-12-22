@@ -52,10 +52,9 @@ Dictionary::Dictionary(plist_t node, Node* parent) : Structure(parent)
 
 Dictionary::Dictionary(const PList::Dictionary& d)
 {
-    for (Dictionary::iterator it = _map.begin(); it != _map.end(); it++)
-    {
-        plist_free(it->second->GetPlist());
-        delete it->second;
+    for (auto &m : _map) {
+        plist_free(m.second->GetPlist());
+        delete m.second;
     }
     _map.clear();
     _node = plist_copy(d.GetPlist());
@@ -64,10 +63,9 @@ Dictionary::Dictionary(const PList::Dictionary& d)
 
 Dictionary& Dictionary::operator=(const PList::Dictionary& d)
 {
-    for (Dictionary::iterator it = _map.begin(); it != _map.end(); it++)
-    {
-        plist_free(it->second->GetPlist());
-        delete it->second;
+    for (auto &m : _map) {
+        plist_free(m.second->GetPlist());
+        delete m.second;
     }
     _map.clear();
     _node = plist_copy(d.GetPlist());
@@ -77,9 +75,8 @@ Dictionary& Dictionary::operator=(const PList::Dictionary& d)
 
 Dictionary::~Dictionary()
 {
-    for (Dictionary::iterator it = _map.begin(); it != _map.end(); it++)
-    {
-        delete it->second;
+    for (auto &m : _map) {
+        delete m.second;
     }
     _map.clear();
 }
@@ -171,10 +168,9 @@ void Dictionary::Remove(const std::string& key)
 
 std::string Dictionary::GetNodeKey(Node* node)
 {
-    for (iterator it = _map.begin(); it != _map.end(); ++it)
-    {
-        if (it->second == node)
-            return it->first;
+    for (auto &m : _map) {
+        if (m.second == node)
+            return m.first;
     }
     return "";
 }

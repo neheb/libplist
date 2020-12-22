@@ -49,10 +49,6 @@ Boolean::Boolean(bool b) : Node(PLIST_BOOLEAN)
     plist_set_bool_val(_node, b);
 }
 
-Boolean::~Boolean()
-{
-}
-
 Node* Boolean::Clone() const
 {
     return new Boolean(*this);

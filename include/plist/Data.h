@@ -36,7 +36,7 @@ public :
     Data(const Data& d);
     Data& operator=(const Data& b);
     Data(const std::vector<char>& buff);
-    virtual ~Data();
+    virtual ~Data() = default;
 
     Node* Clone() const;
 

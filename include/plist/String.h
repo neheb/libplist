@@ -36,7 +36,7 @@ public :
     String(const String& s);
     String& operator=(const String& s);
     String(const std::string& s);
-    virtual ~String();
+    virtual ~String() = default;
 
     Node* Clone() const;
 

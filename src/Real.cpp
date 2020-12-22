@@ -49,10 +49,6 @@ Real::Real(double d) : Node(PLIST_REAL)
     plist_set_real_val(_node, d);
 }
 
-Real::~Real()
-{
-}
-
 Node* Real::Clone() const
 {
     return new Real(*this);

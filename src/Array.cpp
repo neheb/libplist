@@ -61,8 +61,8 @@ Array::Array(const PList::Array& a)
 Array& Array::operator=(const PList::Array& a)
 {
     plist_free(_node);
-    for (size_t it = 0; it < _array.size(); it++) {
-        delete _array.at(it);
+    for (const auto &p : _array) {
+        delete p;
     }
     _array.clear();
     _node = plist_copy(a.GetPlist());
@@ -72,8 +72,8 @@ Array& Array::operator=(const PList::Array& a)
 
 Array::~Array()
 {
-    for (size_t it = 0; it < _array.size(); it++) {
-        delete (_array.at(it));
+    for (const auto &p : _array) {
+        delete p;
     }
     _array.clear();
 }
@@ -106,7 +106,7 @@ void Array::Insert(Node* node, unsigned int pos)
         Node* clone = node->Clone();
         UpdateNodeParent(clone);
         plist_array_insert_item(_node, clone->GetPlist(), pos);
-        std::vector<Node*>::iterator it = _array.begin();
+        auto it = _array.begin();
         it += pos;
         _array.insert(it, clone);
     }
@@ -121,7 +121,7 @@ void Array::Remove(Node* node)
             return;
         }
         plist_array_remove_item(_node, pos);
-        std::vector<Node*>::iterator it = _array.begin();
+        auto it = _array.begin();
         it += pos;
         _array.erase(it);
         delete node;
@@ -131,7 +131,7 @@ void Array::Remove(Node* node)
 void Array::Remove(unsigned int pos)
 {
     plist_array_remove_item(_node, pos);
-    std::vector<Node*>::iterator it = _array.begin();
+    auto it = _array.begin();
     it += pos;
     delete _array.at(pos);
     _array.erase(it);
@@ -139,7 +139,7 @@ void Array::Remove(unsigned int pos)
 
 unsigned int Array::GetNodeIndex(Node* node) const
 {
-    std::vector<Node*>::const_iterator it = std::find(_array.begin(), _array.end(), node);
+    auto it = std::find(_array.begin(), _array.end(), node);
     return std::distance (_array.begin(), it);
 }
 

@@ -35,7 +35,7 @@ public :
     Boolean(const Boolean& b);
     Boolean& operator=(const Boolean& b);
     Boolean(bool b);
-    virtual ~Boolean();
+    virtual ~Boolean() = default;
 
     Node* Clone() const;
 

@@ -1,6 +1,6 @@
 project('libplist', 'c', 'cpp',
   version : '2.2.1',
-  default_options : [ 'c_std=gnu11', 'cpp_std=c++98' ])
+  default_options : [ 'c_std=gnu11', 'cpp_std=c++11' ])
 
 cc = meson.get_compiler('c')
 cdata = configuration_data()

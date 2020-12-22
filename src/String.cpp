@@ -49,10 +49,6 @@ String::String(const std::string& s) : Node(PLIST_STRING)
     plist_set_string_val(_node, s.c_str());
 }
 
-String::~String()
-{
-}
-
 Node* String::Clone() const
 {
     return new String(*this);

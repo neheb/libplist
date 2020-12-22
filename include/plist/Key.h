@@ -36,7 +36,7 @@ public :
     Key(const Key& k);
     Key& operator=(const Key& k);
     Key(const std::string& s);
-    virtual ~Key();
+    virtual ~Key() = default;
 
     Node* Clone() const;
 

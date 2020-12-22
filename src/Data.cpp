@@ -50,10 +50,6 @@ Data::Data(const std::vector<char>& buff) : Node(PLIST_DATA)
     plist_set_data_val(_node, &buff[0], buff.size());
 }
 
-Data::~Data()
-{
-}
-
 Node* Data::Clone() const
 {
     return new Data(*this);
