@@ -117,7 +117,9 @@ static size_t dtostr(char *buf, size_t bufsize, double realval)
             if (buf[i] == ',') {
                 buf[i] = '.';
                 break;
-            } else if (buf[i] == '.') {
+            }
+
+            if (buf[i] == '.') {
                 break;
             }
         }
@@ -759,7 +761,8 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
         PLIST_XML_ERR("EOF while parsing closing tag\n");
         ctx->err++;
         return NULL;
-    } else if (*ctx->pos != '>') {
+    }
+    if (*ctx->pos != '>') {
         PLIST_XML_ERR("Invalid closing tag; expected '>', found '%c'\n", *ctx->pos);
         ctx->err++;
         return NULL;
@@ -862,10 +865,9 @@ static int unescape_entities(char *str, size_t *length)
                 i -= entlen+1 - bytelen;
                 len -= entlen+2 - bytelen;
                 continue;
-            } else {
-                PLIST_XML_ERR("Invalid empty entity sequence &;\n");
-                return -1;
             }
+            PLIST_XML_ERR("Invalid empty entity sequence &;\n");
+            return -1;
         }
         i++;
     }
@@ -971,7 +973,8 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
             }
             ctx->pos += 2;
             continue;
-        } else if (*(ctx->pos) == '!') {
+        }
+        if (*(ctx->pos) == '!') {
             /* comment or DTD */
             if (((ctx->end - ctx->pos) > 3) && !strncmp(ctx->pos, "!--", 3)) {
                 ctx->pos += 3;
@@ -995,13 +998,13 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                     if (*ctx->pos == '[') {
                         embedded_dtd = 1;
                         break;
-                    } else if (*ctx->pos == '>') {
+                    }
+                    if (*ctx->pos == '>') {
                         /* end of DOCTYPE found already */
                         ctx->pos++;
                         break;
-                    } else {
-                        parse_skip_ws(ctx);
                     }
+                    parse_skip_ws(ctx);
                 }
                 if (embedded_dtd) {
                     find_str(ctx, "]>", 2, 1);
@@ -1020,7 +1023,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                 goto err_out;
             }
             continue;
-        } else {
+        }
             int is_empty = 0;
             int closing_tag = 0;
             p = ctx->pos;
@@ -1080,7 +1083,8 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                 node_path = path_item;
 
                 continue;
-            } else if (!strcmp(tag, "/plist")) {
+            }
+            if (!strcmp(tag, "/plist")) {
                 if (!has_content) {
                     PLIST_XML_ERR("encountered empty plist tag\n");
                     ctx->err++;
@@ -1233,10 +1237,9 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                         plist_free(subnode);
                         subnode = NULL;
                         continue;
-                    } else {
-                        data->strval = str;
-                        data->length = length;
                     }
+                    data->strval = str;
+                    data->length = length;
                 } else {
                     data->strval = strdup("");
                     data->length = 0;
@@ -1395,7 +1398,6 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
             keyname = NULL;
             plist_free(subnode);
             subnode = NULL;
-        }
     }
 
     if (node_path) {
